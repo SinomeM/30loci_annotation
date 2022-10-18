@@ -12,7 +12,8 @@ mart <- biomaRt::useMart("ensembl", dataset="hsapiens_gene_ensembl")
 # extract all the genes into a DT
 genes <- biomaRt::getBM(attributes=c("chromosome_name", "start_position",
                                      "end_position", "ensembl_gene_id",
-                                     "gene_biotype"), mart = mart)
+                                     "gene_biotype", "external_gene_name",
+                                     "external_gene_source"), mart = mart)
 setDT(genes)
 # keep only those in the autosomes
 setnames(genes, c("chromosome_name", "start_position", "end_position"),
@@ -24,11 +25,13 @@ unique(genes$gene_biotype)
 # filter by biotype if wanted, e.g. only "protein_coding"
 # genes <- genes[gene_biotype %in% biotypes, ]
 
+# save genes table
+fwrite(genes, "genes_table.tsv", sep = "\t")
+
 # load the 30 loci table
 DT <- fread("../pLI/data/30loci_pLI_LOEUF_annotated.tsv")
 DT <- QCtreeCNV:::chr_uniform(DT)
 setnames(DT, "stop", "end")
-DT
 
 # annotate the table
 DT[, ix := 1:.N]
@@ -51,5 +54,7 @@ for (cc in unique(DT$chr)) {
 }
 
 DT[, ix := NULL]
+
+
 
 fwrite(DT, "30loci_annotated_all_genes.tsv", sep = "\t")
